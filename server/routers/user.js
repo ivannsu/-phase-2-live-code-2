@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const User = require('../models/user')
+const Status = require('../models/status')
 const jwt = require('jsonwebtoken')
 const crypt = require('../helpers/crypt')
 
@@ -77,6 +78,130 @@ router.post('/signin', (req, res) => {
         token
       })
     }
+  })
+  .catch(err => {
+    res.status(500).json({
+      message: err.message
+    })
+  })
+})
+
+router.get('/detail/:id', (req, res) => {
+  let id = req.params.id
+
+  User.findOne({ _id: id })
+  .populate('following')
+  .populate('followers')
+  .then(user => {
+    if(!user) {
+      res.status(500).json({
+        message: 'no user data'
+      })
+    } else {
+      Status.count({ user: id })
+      .then(totalStatus => {
+        res.status(200).json({
+          message: 'get user profile successfully',
+          user, totalStatus
+        })
+      })
+      .catch(err => {
+        res.status(500).json({
+          message: err.message
+        })    
+      })
+    }
+  })
+  .catch(err => {
+    res.status(500).json({
+      message: err.message
+    })
+  })
+})
+
+router.get('/suggestions/:id', (req, res) => {
+  let exceptionId = req.params.id
+
+  User.findRandom(
+    { _id: { $ne: exceptionId } }, 
+    {}, 
+    { limit: 3 }, function(err, results) {
+    if (!err) {
+      res.status(200).json({
+        message: 'get user suggestions',
+        results
+      })
+    } else {
+      res.status(500).json({
+        message: err.message
+      })
+    }
+  })
+})
+
+router.get('/recentfollow/:id', (req, res) => {
+  let userId = req.params.id
+
+  User.findOne({ _id: userId })
+  .populate({ 
+    path: 'following',
+    model: 'User',
+    options: { sort: { 'createdAt': -1 } }})
+  .then(user => {
+    res.status(200).json({
+      message: 'get followers',
+      user
+    })
+  })
+  .catch(err => {
+    res.status(500).json({
+      message: err.message
+    })
+  })
+})
+
+router.post('/follow/:id', (req, res) => {
+  let userId = req.params.id
+  let followingId = req.body.followingId
+
+  User.findOne({ _id: userId })
+  .then(user => {
+    User.updateOne({ _id: userId }, { 
+      $push: { 
+        following: followingId
+      } 
+    })
+    .then(affected => {
+      User.updateOne({ _id: followingId }, { 
+        $push: { 
+          followers: userId
+        } 
+      })
+      .then(affected => {
+        User.findOne({ _id: followingId })
+        .then(hasFollowed => {
+          res.status(200).json({
+            message: 'follow successfully',
+            userId, hasFollowed
+          })
+        })
+        .catch(err => {
+          res.status(500).json({
+            message: err.message
+          })
+        })
+      })
+      .catch(err => {
+        res.status(500).json({
+          message: err.message
+        })
+      })  
+    })
+    .catch(err => {
+      res.status(500).json({
+        message: err.message
+      })  
+    })
   })
   .catch(err => {
     res.status(500).json({
