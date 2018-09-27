@@ -37,8 +37,7 @@ export default {
         }
       })
         .then(response => {
-          console.log(response.data)
-          self.$router.replace({ path: '/' })
+          self.$store.dispatch('commitStatus')
         })
         .catch(err => {
           let message = err.response.data.message

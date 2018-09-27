@@ -5,7 +5,7 @@
         <img class="d-flex mr-3 rounded-circle" src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260" alt="">
         <span class="media-body twit-status">
           <h5 class="mt-0">{{ stat.user.name }}</h5>
-          <p>@j{{ stat.user.username }}</p>
+          <p>@{{ stat.user.username }}</p>
           {{ stat.content }}
         </span>
       </div>
@@ -14,33 +14,11 @@
 </template>
 
 <script>
-import axios from 'axios'
 
 export default {
   name: 'Status',
   created () {
-    // commitStatus
-    let self = this
-
-    axios({
-      method: 'GET',
-      url: `${self.$baseurl}/status`
-    })
-      .then(response => {
-        let status = response.data.status
-
-        if (status.length !== 0) {
-          let payload = {
-            data: status,
-            empty: false
-          }
-          self.$store.dispatch('commitStatus', payload)
-        }
-      })
-      .catch(err => {
-        let message = err.response.data.message
-        console.log(message)
-      })
+    this.$store.dispatch('commitStatus')
   },
   computed: {
     status () {
