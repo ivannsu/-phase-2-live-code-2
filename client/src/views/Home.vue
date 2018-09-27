@@ -1,18 +1,38 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="row">
+    <div class="col-3">
+      <Profile v-if="token && userId" />
+      <Search v-if="token && userId"/>
+    </div>
+    <div class="col-6">
+      <StatusPost v-if="token && userId"/>
+      <Status/>
+    </div>
+    <div class="col-3">
+      <RecentFollow v-if="token && userId"/>
+    </div>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
+import Profile from '@/components/Profile.vue'
+import Search from '@/components/Search.vue'
+import RecentFollow from '@/components/RecentFollow.vue'
+import StatusPost from '@/components/StatusPost.vue'
+import Status from '@/components/Status.vue'
 
 export default {
   name: 'home',
   components: {
-    HelloWorld
+    Profile, Search, RecentFollow, StatusPost, Status
+  },
+  computed: {
+    token () {
+      return this.$store.state.token
+    },
+    userId () {
+      return this.$store.state.userId
+    }
   }
 }
 </script>
